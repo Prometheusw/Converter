@@ -521,7 +521,7 @@ u8 CAN_Receive_Msg(u8 canChan,u8 FIFONum,CAN_DATA_FRAME *buf)
 					if(RTRbuf->id.idBit.recvDeviceId==ThisTransitionNumber)//只有发给本设备的应答帧才会计数信号量
 					{
             OSSemPost(can2InfoAckSem);
-					  printf("收到一个应答包\r\n");
+//					  printf("收到一个应答包\r\n");
             memset(&RxMessage,0,sizeof(CAN_DATA_FRAME));//清空RxMessage
 //            OS_ENTER_CRITICAL();
 //						myfree(SRAMIN,RTRbuf);
@@ -1050,16 +1050,16 @@ void ACKSendFram(u8 canChan,CAN_DATA_FRAME *tempNode)
        SendRes = CAN_RTRframe_Send(canChan,id,CAN_Id_Extended);//立刻回复一个远程帧，应答//通道号//id
 			if(SendRes==SEND_SUCCESS)
 			{
-				printf("<事务ID：%llu>调用应答帧发送函数成功\r\n",printfcount);
+				//printf("<事务ID：%llu>调用应答帧发送函数成功\r\n",printfcount);
 			}
 			else if(SendRes==SEND_FAILURE)
 			{
 				ReSendRes = CAN_RTRframe_Send(canChan,id,CAN_Id_Extended);//立刻回复一个远程帧，应答//通道号//id
-				printf("<事务ID：%llu>（ERR）调用应答帧发送函数失败，重发代码%d\r\n",printfcount,ReSendRes);//成功是4，失败是3
+				//printf("<事务ID：%llu>（ERR）调用应答帧发送函数失败，重发代码%d\r\n",printfcount,ReSendRes);//成功是4，失败是3
 			}
 			else if(SendRes==SEND_BUS_CLOSED)
 			{
-				printf("<事务ID：%llu>调用应答帧发送函数成功",printfcount);
+				//printf("<事务ID：%llu>调用应答帧发送函数成功",printfcount);
 			}
     }
     else if(tempNode->id.idBit.MasterslaveBit==MasterSlave)//主从模式下 0000
@@ -1977,7 +1977,7 @@ void CAN2_Send_Frame(CAN_SEND_FRAME *frame)
             if(cntRetry>=MAX_RETRY_TIMES)
             {
                 memset(&can2InfoAckFrame,0,sizeof(ReplyFrame));
-							  printf("目标在重试后没有回复！\r\n");
+							 // printf("目标在重试后没有回复！\r\n");
                 return;
             }
         }

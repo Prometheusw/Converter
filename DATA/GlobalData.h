@@ -40,11 +40,8 @@ extern uint64_t printfcount;//打印流程计数，便于查看
 extern volatile INT8U   FindZeroGlob;
 extern T_CAN_Communicat_Mode CANCommunicatMode;
 extern u8 alreadlyuptrack;
-extern OS_EVENT * TransLocationQeue;//轨道定位信号邮箱
-extern OS_EVENT * CarAlreadyPassSem;//小车已经通过信号量
 extern OS_EVENT * CarAlreadyUpMbox;//小车已经上轨信号量
 extern OS_EVENT * CarAlreadyDownSem;//小车已经下轨道信号量
-extern OS_EVENT * TransFindzeroSem;//轨道找零
 extern OS_EVENT * AgreeChangeModeSem;//域同意改变模式
 extern OS_EVENT * ApplyChangeModeBox;//申请模式变更信号邮箱
 extern OS_EVENT * WhereIsCarMbox;//小车现在在哪信号邮箱

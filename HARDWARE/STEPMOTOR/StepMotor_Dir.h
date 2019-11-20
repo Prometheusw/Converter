@@ -27,7 +27,6 @@ extern OS_EVENT * can1Mbox;
 
 extern OS_EVENT *stepMotorCtlSem;
 extern OS_EVENT *arrivePosSem;//到达目标位置信号量
-extern OS_EVENT *stepFreeSem;//电机释放信号量
 
 void TIM10_Cap_Init(u32 arr,u16 psc);
 void TIM9_Cap_Init(u32 arr,u16 psc);

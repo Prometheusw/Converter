@@ -20,22 +20,22 @@
 void HEARBEAT_TASK(void *pdata)
 {
     CAN_DATA_FRAME *TempNode;
-	  OS_CPU_SR cpu_sr;
+    OS_CPU_SR cpu_sr;
     pdata=pdata;
     OS_ENTER_CRITICAL();
     TempNode = (CAN_DATA_FRAME *)mymalloc(SRAMIN,sizeof(CAN_DATA_FRAME));//申请内存
     OS_EXIT_CRITICAL();
 //            memset(TempNode->canMsg.dataBuf,0,sizeof(CAN_MSG));
-	 memset(TempNode,0,sizeof(CAN_DATA_FRAME));
-   TempNode->dataLen=0;
-   TempNode->id.MasteridBit.Subindex=0x00;//主索引
-   TempNode->id.MasteridBit.MainIndex=0x00;//自索引
-   TempNode->id.MasteridBit.deviceid=0x00;//设备号//域的地址
-   TempNode->id.MasteridBit.ReserveBit=0;//保留位
-   TempNode->id.MasteridBit.RetryBit=0;//重发标志
-   TempNode->id.MasteridBit.ackBit=0;//应答帧标志
-   TempNode->id.MasteridBit.SubframeBit=0;//分帧标志
-   TempNode->id.MasteridBit.MasterslaveBit=0;//多主标志
+    memset(TempNode,0,sizeof(CAN_DATA_FRAME));
+    TempNode->dataLen=0;
+    TempNode->id.MasteridBit.Subindex=0x00;//主索引
+    TempNode->id.MasteridBit.MainIndex=0x00;//自索引
+    TempNode->id.MasteridBit.deviceid=0x00;//设备号//域的地址
+    TempNode->id.MasteridBit.ReserveBit=0;//保留位
+    TempNode->id.MasteridBit.RetryBit=0;//重发标志
+    TempNode->id.MasteridBit.ackBit=0;//应答帧标志
+    TempNode->id.MasteridBit.SubframeBit=0;//分帧标志
+    TempNode->id.MasteridBit.MasterslaveBit=0;//多主标志
     while(1)
     {
         if(HeartBeat.BeatTime==1)
@@ -43,9 +43,9 @@ void HEARBEAT_TASK(void *pdata)
             CAN2_Single_Send(TempNode);//单帧发送函数
             HeartBeat.BeatTime=0;//计数清零
         }
-				HeartBeat.BeatTime++;
+        HeartBeat.BeatTime++;
         OSTimeDlyHMSM(0,0,10,0);
-				 
+
     }
 
 }

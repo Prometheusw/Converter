@@ -103,7 +103,7 @@
         <bEvRecOn>1</bEvRecOn>
         <bSchkAxf>0</bSchkAxf>
         <bTchkAxf>0</bTchkAxf>
-        <nTsel>6</nTsel>
+        <nTsel>4</nTsel>
         <sDll></sDll>
         <sDllPa></sDllPa>
         <sDlgDll></sDlgDll>
@@ -114,7 +114,7 @@
         <tDlgDll></tDlgDll>
         <tDlgPa></tDlgPa>
         <tIfile></tIfile>
-        <pMon>STLink\ST-LINKIII-KEIL_SWO.dll</pMon>
+        <pMon>Segger\JL2CM3.dll</pMon>
       </DebugOpt>
       <TargetDriverDllRegistry>
         <SetRegEntry>
@@ -167,34 +167,34 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>165</LineNumber>
+          <LineNumber>369</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134230606</Address>
+          <Address>134231630</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\HARDWARE\TRACKMISSION\TrackMission_Dri.c</Filename>
+          <Filename>..\HARDWARE\STEPMOTOR\StepMotor_Dir.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Transition\../HARDWARE/TRACKMISSION/TrackMission_Dri.c\165</Expression>
+          <Expression>\\Transition\../HARDWARE/STEPMOTOR/StepMotor_Dir.c\369</Expression>
         </Bp>
         <Bp>
           <Number>1</Number>
           <Type>0</Type>
-          <LineNumber>991</LineNumber>
+          <LineNumber>328</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134236698</Address>
+          <Address>134231462</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\HARDWARE\CAN\Can_Dri.c</Filename>
+          <Filename>..\HARDWARE\STEPMOTOR\StepMotor_Dir.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Transition\../HARDWARE/CAN/Can_Dri.c\991</Expression>
+          <Expression>\\Transition\../HARDWARE/STEPMOTOR/StepMotor_Dir.c\328</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>
@@ -238,6 +238,16 @@
           <WinNumber>1</WinNumber>
           <ItemText>TranferSpeed</ItemText>
         </Ww>
+        <Ww>
+          <count>8</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>mem1mapbase</ItemText>
+        </Ww>
+        <Ww>
+          <count>9</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>mem1base</ItemText>
+        </Ww>
       </WatchWindow1>
       <WatchWindow2>
         <Ww>
@@ -254,6 +264,21 @@
           <count>2</count>
           <WinNumber>2</WinNumber>
           <ItemText>stepMotorCtlSem</ItemText>
+        </Ww>
+        <Ww>
+          <count>3</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>mem1base[1024]</ItemText>
+        </Ww>
+        <Ww>
+          <count>4</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>speed</ItemText>
+        </Ww>
+        <Ww>
+          <count>5</count>
+          <WinNumber>2</WinNumber>
+          <ItemText>count</ItemText>
         </Ww>
       </WatchWindow2>
       <MemoryWindow1>

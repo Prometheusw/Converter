@@ -17,7 +17,7 @@ CAR_CHANGEMISSION_DATA * SCREEN_FUNC(void)
     CAR_CHANGEMISSION_DATA *TempMissionNode=NULL;//临时结点，指向申请转轨任务头结点
     CAR_CHANGEMISSION_DATA *ReturnNode=NULL;//返回的预动筛选节点
     CAR_CHANGEMISSION_DATA *MissionNode=NULL;//返回会的节点备份
-	  CAR_CHANGEMISSION_DATA *LastNodeBackUp;//qianjiedian
+    CAR_CHANGEMISSION_DATA *LastNodeBackUp=NULL;//qianjiedian
     TempMissionNode = g_CarApplyChangedata;//指向头结点
     OS_ENTER_CRITICAL();
     while(TempMissionNode->NextMission!=NULL)
@@ -35,10 +35,10 @@ CAR_CHANGEMISSION_DATA * SCREEN_FUNC(void)
         else
         {
             if(TempMissionNode->NextMission->MissionMark==MISSION_CARCHAGE||
-							TempMissionNode->NextMission->MissionMark==MISSION_FINDZERO||
-						TempMissionNode->NextMission->MissionMark==MISSION_LOCATION||
-						TempMissionNode->NextMission->MissionMark==MISSION_MOVE)
-						//找零和定位以及运动任务在这个筛选下应该都是不可用的，此处为了方便调试
+                    TempMissionNode->NextMission->MissionMark==MISSION_FINDZERO||
+                    TempMissionNode->NextMission->MissionMark==MISSION_LOCATION||
+                    TempMissionNode->NextMission->MissionMark==MISSION_MOVE)
+                //找零和定位以及运动任务在这个筛选下应该都是不可用的，此处为了方便调试
             {
                 MissionNode=TempMissionNode->NextMission;
                 TempMissionNode->NextMission=TempMissionNode->NextMission->NextMission;
@@ -47,7 +47,7 @@ CAR_CHANGEMISSION_DATA * SCREEN_FUNC(void)
             }
             if(ISorNotPermisionDo==0&&ReturnNode==NULL&&TempMissionNode->NextMission->MissionMark==MISSION_PROMISSION)
             {
-							  LastNodeBackUp=TempMissionNode;
+                LastNodeBackUp=TempMissionNode;
                 ReturnNode=TempMissionNode->NextMission;
             }
         }
@@ -91,7 +91,7 @@ ErrorType PreAction(u8 Num)
         TransStatus.TrackUse.Usebit.ExeCommands=T_No;//命令执行
         return No_Err;
     }
-      return No_Err;
+    return No_Err;
 }
 /*定位任务*/
 ErrorType FixTrack()
@@ -122,24 +122,24 @@ ErrorType FixTrack()
 /*找零*/
 ErrorType FindZeroAction()
 {
-    OS_CPU_SR cpu_sr;
-    CAN_SEND_FRAME *TempResultFram;
-    OS_ENTER_CRITICAL();
-    TempResultFram=(CAN_SEND_FRAME *)mymalloc(SRAMIN,sizeof(CAN_SEND_FRAME));//结果帧
-    OS_EXIT_CRITICAL();
-    memset(TempResultFram,0,sizeof(CAN_SEND_FRAME));//申请到的内存清零
+    OS_CPU_SR cpu_sr;   
     FindZeroFuction(Need_Back);//找零函数
     if(NOWMISSIONNODE->FarmID!=0x04fe0211)//如果是外部定位 非modbus 需要回复
     {
+			  CAN_SEND_FRAME *TempResultFram;
+        OS_ENTER_CRITICAL();
+        TempResultFram=(CAN_SEND_FRAME *)mymalloc(SRAMIN,sizeof(CAN_SEND_FRAME));//结果帧
+        OS_EXIT_CRITICAL();
+        memset(TempResultFram,0,sizeof(CAN_SEND_FRAME));//申请到的内存清零
         TempResultFram->len=1;
         TempResultFram->id=NOWMISSIONNODE->FarmID;//
         TempResultFram->canMsg.dataBuf[0]=No_Err;
         TempResultFram->nextMsg=NULL;
         CAN_Post_Queue(CAN2_CHANNEL,TempResultFram);//入发送队列
-    }
-    OS_ENTER_CRITICAL();
-    myfree(SRAMIN,TempResultFram);
-    OS_EXIT_CRITICAL();
+        OS_ENTER_CRITICAL();
+        myfree(SRAMIN,TempResultFram);
+        OS_EXIT_CRITICAL();
+	  }
     TransStatus.TrackUse.Usebit.ExeCommands=T_No;//正在执行命令释放
     return No_Err;
 }
@@ -148,10 +148,7 @@ ErrorType CheakSelfAction()
 {
     OS_CPU_SR cpu_sr;
     CAN_SEND_FRAME *TempResultFram;
-    OS_ENTER_CRITICAL();
-    TempResultFram=(CAN_SEND_FRAME *)mymalloc(SRAMIN,sizeof(CAN_SEND_FRAME));//结果帧
-    OS_EXIT_CRITICAL();
-    memset(TempResultFram,0,sizeof(CAN_SEND_FRAME));//申请到的内存清零
+
     u8 MovingErdoc=0;
     u8 StaticErdoc=0;
     u8 chooseErdoc;
@@ -179,7 +176,12 @@ ErrorType CheakSelfAction()
                 /*2019-07-05王凯:修改：给返回帧添加错误代码，错误代码是数据的第一个字节*/
                 //memset(tempNode2->canMsg.dataBuf,0,sizeof(CAN_MSG));
                 if(NOWMISSIONNODE->FarmID!=0x04fe0222)//如果是外部定位 非modbus 需要回复                {
-                {   TempResultFram->len=8;
+                {
+                    OS_ENTER_CRITICAL();
+                    TempResultFram=(CAN_SEND_FRAME *)mymalloc(SRAMIN,sizeof(CAN_SEND_FRAME));//结果帧
+                    OS_EXIT_CRITICAL();
+                    memset(TempResultFram,0,sizeof(CAN_SEND_FRAME));//申请到的内存清零
+                    TempResultFram->len=8;
                     TempResultFram->id=NOWMISSIONNODE->FarmID;//
                     TempResultFram->canMsg.dataBuf[0]=TransStatus.DeviceMode;//最字节是工作模式
                     TempResultFram->canMsg.dataBuf[1]=TransStatus.WarningCode;//警告代码
@@ -191,10 +193,11 @@ ErrorType CheakSelfAction()
                     TempResultFram->canMsg.dataBuf[7]=TransStatus.TrackUse.TrackStatus;//当前位置//01 12 23 11 22 33 ff
                     TempResultFram->nextMsg=NULL;
                     CAN_Post_Queue(CAN2_CHANNEL,TempResultFram);//入发送队列
-                }
-            OS_ENTER_CRITICAL();
-            myfree(SRAMIN,TempResultFram);
-            OS_EXIT_CRITICAL();
+                    OS_ENTER_CRITICAL();
+                    myfree(SRAMIN,TempResultFram);
+                    OS_EXIT_CRITICAL();
+								}
+            
             TransStatus.TrackUse.Usebit.ExeCommands=T_No;//正在执行命令释放
         }
     }
@@ -243,7 +246,7 @@ ErrorType MoveAction()
         }
         OSSemPend(arrivePosSem,0,&oserr);//等待到位信号，这里无限等待，如果等不到，说明除了严重故障，人工处理
     }
-		return No_Err;
+    return No_Err;
 }
 
 /*小车调度*/
@@ -253,18 +256,14 @@ ErrorType DispatchCar()
     ErrorType err;
     OS_CPU_SR cpu_sr;
     uint8_t sserr;
-	  step=T_MOVE_POS0;
+    step=T_MOVE_POS0;
     CAN_SEND_FRAME *TempFramup=NULL;//通知小车上轨的主动帧结点
     CAN_SEND_FRAME *TempFramdown=NULL;//通知小车下轨的主动帧结点
     CAN_SEND_FRAME *CarIsDownTrack=NULL;//通知域控制器小车正在下轨道的帧节点，便于域控制器计算路径
-    OS_ENTER_CRITICAL();
-    TempFramup = (CAN_SEND_FRAME *)mymalloc(SRAMIN,sizeof(CAN_SEND_FRAME));//通知小车上轨的主动帧
-    TempFramdown = (CAN_SEND_FRAME *)mymalloc(SRAMIN,sizeof(CAN_SEND_FRAME));//通知小车x轨的主动帧
-    CarIsDownTrack = (CAN_SEND_FRAME *)mymalloc(SRAMIN,sizeof(CAN_SEND_FRAME));
-    OS_EXIT_CRITICAL();
     int retry=3;
     while(retry>0 && step!=T_FINISH)
     {
+
         switch(step)
         {
         case T_MOVE_POS0:
@@ -283,6 +282,9 @@ ErrorType DispatchCar()
         break;
         case T_NOTICE_ENTRY:
         {
+            OS_ENTER_CRITICAL();
+            TempFramup = (CAN_SEND_FRAME *)mymalloc(SRAMIN,sizeof(CAN_SEND_FRAME));//通知小车上轨的主动帧
+            OS_EXIT_CRITICAL();
             memset(TempFramup,0,sizeof(CAN_SEND_FRAME));//因为并没有填满整个帧数据，全部设置为零，防止数据错乱
             TempFramup->len=2;
             TempFramup->id=NOWMISSIONNODE->CarNum<<16|ThisTransitionNumber<<8|CarCanUpTrack|0x14<<24;//索引号要改成通知小车可以上轨道的索引
@@ -290,6 +292,9 @@ ErrorType DispatchCar()
             TempFramup->canMsg.dataBuf[1]=NOWMISSIONNODE->TerminalPoint;//终点位置
             TempFramup->nextMsg=NULL;
             CAN_Post_Queue(CAN2_CHANNEL,TempFramup);//压入主动帧链表，发送通知小车上轨的帧，并在发送线程中等带对方的回应量
+            OS_ENTER_CRITICAL();
+            myfree(SRAMIN,TempFramup);
+            OS_EXIT_CRITICAL();
             step=T_WAIT_ENTRY;
         }
         break;
@@ -307,15 +312,23 @@ ErrorType DispatchCar()
         break;
         case T_NOTICE_OUT:
         {
+            OS_ENTER_CRITICAL();
+            TempFramdown = (CAN_SEND_FRAME *)mymalloc(SRAMIN,sizeof(CAN_SEND_FRAME));//通知小车x轨的主动帧
+            OS_EXIT_CRITICAL();
             memset(TempFramdown,0,sizeof(CAN_SEND_FRAME));
             TempFramdown->len=0;
             TempFramdown->id=NOWMISSIONNODE->CarNum<<16|ThisTransitionNumber<<8|CarCanDownTrack|0x14<<24;//索引号要改成通知小车可以下轨道的索引
             //TempFramdown->canMsg.dataBuf[0]=TempMissionNode->InitialPoint;//起始位
             TempFramdown->nextMsg=NULL;
             CAN_Post_Queue(CAN2_CHANNEL,TempFramdown);//压入主动帧链表，发送通知小车下轨的帧，并在发送线程中等带对方的回应量
+            OS_ENTER_CRITICAL();
+            myfree(SRAMIN,TempFramdown);
+            OS_EXIT_CRITICAL();
             /*小车刚刚下轨道就给区域控制器发送小车已经下轨状态通知帧*/
             //组包
-            CarIsDownTrack = (CAN_SEND_FRAME *)mymalloc(SRAMIN,sizeof(CAN_SEND_FRAME));//通知区域控制器小车已经下轨道的帧
+            OS_ENTER_CRITICAL();
+            CarIsDownTrack = (CAN_SEND_FRAME *)mymalloc(SRAMIN,sizeof(CAN_SEND_FRAME));
+            OS_EXIT_CRITICAL();
             memset(CarIsDownTrack,0,sizeof(CAN_SEND_FRAME));//帧清空
             CarIsDownTrack->len=1;//长度是1
             CarIsDownTrack->id=0x04<<24|ThisTransitionNumber<<16|CAN_TRANSFER_MAININDEX<<8|CarIsDowning;
@@ -323,6 +336,9 @@ ErrorType DispatchCar()
             CarIsDownTrack->nextMsg=NULL;
             //组包完成
             CAN_Post_Queue(CAN2_CHANNEL,CarIsDownTrack);//给区域控制器发
+            OS_ENTER_CRITICAL();
+            myfree(SRAMIN,CarIsDownTrack);
+            OS_EXIT_CRITICAL();
             step=T_WAIT_OUT;
         }
         break;
@@ -337,6 +353,7 @@ ErrorType DispatchCar()
             break;
         }
     }
+		return No_Err;
 
 }
 /*执行函数*/
@@ -406,7 +423,6 @@ void TransFindZero_Task(void *pdata)
     pdata=pdata;
     while(1)
     {
-        //OSSemPend(TransFindzeroSem,0,&oserr);//无限等待找零信号量
         if(FindZeroGlob>0)//说明中断已经进入
         {
             OSTimeDlyHMSM(0,0,0,10);  //10ms的滤波

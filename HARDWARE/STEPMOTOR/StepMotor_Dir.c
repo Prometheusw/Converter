@@ -11,7 +11,6 @@
 #include "myconfig.h"
 OS_EVENT *stepMotorCtlSem;//单步信号量
 OS_EVENT *arrivePosSem;//到达目标位置信号量
-OS_EVENT *stepFreeSem;//电机释放信号量
 INT8U stepMotorCtlTime;//每一步之间间隔5us为一个单位
 u8 ZeroDirction=0xff;//零点开关方向,初始未知，从flash中读取或者modbus告知
 u8 PCtrl=0;//逆
@@ -286,14 +285,18 @@ void StepMotor_NCtrl(u32 speed)
 bool StepMotor_Run(u32 speed,u8 direction,u32 count)
 {
     u8 Stepcount=0;
-    u8 SpeedUpMax=100;
-    //u8 SpeedDownMin=speed;
-    int8_t MAXFlag=-1;//权值
+    u8 SpeedUpMax=60;
     u32 LevelCount;
+	  u32 initialspeed=speed;//备份初始速度
+	  u32 initialcount=count;//备份初始count；
     TransStatus.DockedNumber=0xffff;//位置未知
     if(speed>SpeedUpMax)
     {
         LevelCount=(count/(speed-SpeedUpMax))/2;//每LevelCount个编码，speed升一级
+			if(LevelCount>=50)
+			{
+				LevelCount=50;
+			}
     }
     IsMotorRun=T_Yes;
     if(direction==PCtrl)//逆时针
@@ -311,16 +314,18 @@ bool StepMotor_Run(u32 speed,u8 direction,u32 count)
             {
                 StepMotor_PCtrl(speed);//100是速度
             }
-            /*峰值加减速*/
-//            if(speed>SpeedUpMax&&count%LevelCount==0)//说明编码数已经走了一个等级,短路条件
-//            {
-//                speed=speed+MAXFlag;//加速一个,此时Falg为-1
-//                if(speed==SpeedUpMax+1)///当到达最大速度的时候
-//                {
-//                    MAXFlag=1;
-//                }
-//            }
-
+          /*峰值加减速*/						
+            if(speed>SpeedUpMax&&count%LevelCount==0&&
+							(initialcount-count)<=LevelCount*(initialspeed-SpeedUpMax))//说明编码数已经走了一个等级,短路条件
+            {
+                speed=speed-1;//  
+            }
+            if(count%LevelCount==0&&speed<=initialspeed&&
+							count<=LevelCount*(initialspeed-SpeedUpMax))//说明编码数已经走了一个等级,短路条
+						{
+							speed=speed+1;//
+						}
+							
             if(ZeroDirction==clockwise)//如果是顺指针找零，这个时候是逆时针转动，所以编码数加一
             {
                 TransStatus.EncoderCount++;//编码数加一
@@ -350,16 +355,18 @@ bool StepMotor_Run(u32 speed,u8 direction,u32 count)
             {
                 StepMotor_NCtrl(speed);//100是速度
             }
-//            /*峰值加减速*/
-//            if(speed>SpeedUpMax&&count%LevelCount==0)//说明编码数已经走了一个等级,短路条件
-//            {
-//                speed=speed+MAXFlag;//加速一个,此时Falg为-1
-//                if(speed==SpeedUpMax+1)///当到达最大速度的时候
-//                {
-//                    MAXFlag=1;
-//                }
-//            }
-
+                   /*峰值加减速*/						
+            if(speed>SpeedUpMax&&count%LevelCount==0&&
+							(initialcount-count)<=LevelCount*(initialspeed-SpeedUpMax))//说明编码数已经走了一个等级,短路条件
+            {
+                speed=speed-1;//  
+            }
+            if(count%LevelCount==0&&speed<=initialspeed&&
+							count<=LevelCount*(initialspeed-SpeedUpMax))//说明编码数已经走了一个等级,短路条
+						{
+							speed=speed+1;//
+						}
+							
             if(ZeroDirction==clockwise)//如果是顺指针找零，这个时候是shun时针转动，所以编码数-1
             {
                 TransStatus.EncoderCount--;

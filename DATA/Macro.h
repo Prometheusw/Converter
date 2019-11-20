@@ -75,33 +75,23 @@
 #define      HEARTBEAT_TASK_SIZE          512
 #define      MODBUS_TASK_SIZE             512
 #define      STATE_TASK_SIZE              512
-#define      MODE_TASK_SIZE             512
+#define      MODE_TASK_SIZE               512
 /*1任务优先级设置*/
 #define START_TASK_PRIO      			4//开始任务 优先级最高
 #define CAN2_TASK_PRIO            5//can2分配任务，中断接受之后，在这个任务分配处理
 #define CAN2ACK_TASK_PRIO         6//CAn2应答帧处理任务
 #define CAN2ACT_TASK_PRIO         7//can2主动帧处理任务，在can2处理任务之后
-#define STEPMOTOR_TASK_PRIO       15
-#define TRANSLOCATION_TASK_PRIO   8//轨道定位任务
 #define RUN_TASK_PRIO             21//指示系统是否正常运行函数。放在最低优先级
 #define LED_TASK_PRIO             18
-#define MISSIONANALYSE_PRIO       10//转轨器任务分析任务
-#define CARAPPLYPASS_PRIO         11//小车要通过转轨器任务
 #define CAN2Send_PRIO             14
-#define CARAPPLYCHANGE_PRIO       12//小车申请转换轨道任务
 #define FINDZERO_PRIO             9
 #define TRANSPERMI_PRIO           13
-
 #define HEARTBEAT_PRIO            17
 #define MODBUS_PRIO               16
-
 #define STATE_PRIO                19
 #define MODE_PRIO                 20
 /*2定义任务堆栈大小*/
 #define START_STK_SIZE  				  128
-
-
-
 
 
 #define USEPRINTF   1

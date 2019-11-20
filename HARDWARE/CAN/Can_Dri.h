@@ -128,7 +128,7 @@
 
 #define CAN1_BUF_SIZE  				256
 #define CAN2_BUF_SIZE  				256
-#define MAX_ACK_TIMEOUT       500 //回复超时等待时间
+#define MAX_ACK_TIMEOUT       300 //回复超时等待时间
 #define MAX_RETRY_TIMES       3   //最大超时重发次数定为3
 
 //定义CAN1和CAN2两个通道数量
@@ -272,7 +272,6 @@ extern OS_EVENT *can1AckSem;	 //CAN1信号量指针
 extern OS_EVENT *can2AckSem;	 //CAN1信号量指针
 extern OS_EVENT *can1CtlResSem; 
 
-extern OS_EVENT *Can2Find0AckSem;//找零成功后给域发送结果信号量，然后域回复收到的信号量
 
 extern OS_EVENT *can1CtlAckSem;	 //CAN1控制应答处理信号量指针
 extern OS_EVENT *can2CtlAckSem;	 //CAN2控制应答处理信号量指针
@@ -282,7 +281,6 @@ extern OS_EVENT *can2InfoAckSem;  //CAN2信息应答信号量
 extern OS_EVENT *can1SendSem;
 extern OS_EVENT *can2SendSem;
 
-extern OS_EVENT *StepRunMbox;
 
 /************************************消息邮箱******************************************/
 extern OS_EVENT *can1Mbox;

@@ -21,7 +21,7 @@ void Beep_Init(void)
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_100MHz;//100MHz
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
-    //GPIO_Init(GPIOF, &GPIO_InitStructure);
+    GPIO_Init(GPIOF, &GPIO_InitStructure);
     BeepON;
 }
 

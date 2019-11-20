@@ -9,7 +9,7 @@
 ** 文档描述: */
 /*CAN信息主索引分配*/
 #include "includes.h"
-/********子索引***********/
+/********索引***********/
 typedef enum _CAN_MAININDEX
 {
 	CAN_CONTROLLER_MAININDEX,          //通用控制器
@@ -191,7 +191,7 @@ enum _MISSIONKINDS
 };
 
 typedef u8 ErrorType;
-
+/*调度小车*/
 typedef enum _DISPATCHCAR{
 	T_MOVE_POS0,
 	T_NOTICE_ENTRY,

@@ -15,14 +15,14 @@ __align(32) OS_STK RUN_TASK_STK[RUN_TASK_SIZE]                        __attribut
 __align(32) OS_STK CAN2_TASK_STK[CAN2_TASK_SIZE]                      __attribute__((at(NotUsedCCMBASE(512))));
 __align(32) OS_STK CAN2ACK_TASK_STK[CAN2ACK_TASK_SIZE]                __attribute__((at(NotUsedCCMBASE(512*2))));
 __align(32) OS_STK CAN2ACT_TASK_STK[CAN2ACT_TASK_SIZE]                __attribute__((at(NotUsedCCMBASE(512*3))));
-__align(32) OS_STK LED_TASK_STK[LED_TASK_SIZE]                        __attribute__((at(NotUsedCCMBASE(512*5))));
-__align(32) OS_STK CAN2Send_TASK_STK[CAN2Send_TASK_SIZE]              __attribute__((at(NotUsedCCMBASE(512*9))));
-__align(32) OS_STK FINDZERO_TASK_STK[FINDZERO_TASK_SIZE]              __attribute__((at(NotUsedCCMBASE(512*11))));
-__align(32) OS_STK TRANSPERMI_TASK_STK[TRANSPERMI_TASK_SIZE]          __attribute__((at(NotUsedCCMBASE(512*12))));
-__align(32) OS_STK HEARTBEAT_TASK_STK[HEARTBEAT_TASK_SIZE]            __attribute__((at(NotUsedCCMBASE(512*13))));
-__align(32) OS_STK MODBUS_TASK_STK[MODBUS_TASK_SIZE]                  __attribute__((at(NotUsedCCMBASE(512*14))));
-__align(32) OS_STK STATE_TASK_STK[STATE_TASK_SIZE]                    __attribute__((at(NotUsedCCMBASE(512*15))));
-__align(32) OS_STK MODE_TASK_STK[MODE_TASK_SIZE]                      __attribute__((at(NotUsedCCMBASE(512*16))));
+__align(32) OS_STK LED_TASK_STK[LED_TASK_SIZE]                        __attribute__((at(NotUsedCCMBASE(512*4))));
+__align(32) OS_STK CAN2Send_TASK_STK[CAN2Send_TASK_SIZE]              __attribute__((at(NotUsedCCMBASE(512*5))));
+__align(32) OS_STK FINDZERO_TASK_STK[FINDZERO_TASK_SIZE]              __attribute__((at(NotUsedCCMBASE(512*6))));
+__align(32) OS_STK TRANSPERMI_TASK_STK[TRANSPERMI_TASK_SIZE]          __attribute__((at(NotUsedCCMBASE(512*7))));
+__align(32) OS_STK HEARTBEAT_TASK_STK[HEARTBEAT_TASK_SIZE]            __attribute__((at(NotUsedCCMBASE(512*8))));
+__align(32) OS_STK MODBUS_TASK_STK[MODBUS_TASK_SIZE]                  __attribute__((at(NotUsedCCMBASE(512*9))));
+__align(32) OS_STK STATE_TASK_STK[STATE_TASK_SIZE]                    __attribute__((at(NotUsedCCMBASE(512*10))));
+__align(32) OS_STK MODE_TASK_STK[MODE_TASK_SIZE]                      __attribute__((at(NotUsedCCMBASE(512*11))));
 
 
 /*******************************************************************************
@@ -44,7 +44,7 @@ void ParameterInit(void)
     ControlMessage.ManufactureData=20190812;//生产日期
     ControlMessage.UseData=20190812;//使用日期
 
-	  EquipmentType=CAN_TRANSFER_MAININDEX;//此设备的类型是转轨器
+    EquipmentType=CAN_TRANSFER_MAININDEX;//此设备的类型是转轨器
     CANCommunicatMode.CanMode.CanModeMask=0xff;//CAN的发送模式初始化为全部开启
 
     memset(TrackCount,0xffff,sizeof(TrackCount));//初始化编码数数组
@@ -64,13 +64,12 @@ void ParameterInit(void)
 void HardwareInit(void)
 {
     delay_init(168);//初始化延时函数
-	  delay_ms(1000);
+    delay_ms(1000);
     Beep_Init();//蜂鸣器初始化
-	  Led_Init();
+    Led_Init();
     SYSYEM_Stable(5);//等待系统稳定
     TIM10_Cap_Init(0xFFFF,167);//到位信号//改成时间
     TIM6_Int_Init(420-1,0);//步进电机5us
-    //TIM7_Int_Init(8400-1,10000-1);//心跳帧定时
     Timer2_Init(84-1,1000-1);//Modbus
     TIM9_Cap_Init(0xFFFF,167);
     TIM3_Cap_Init(0xFFFF,83);//零点开关信号
@@ -90,13 +89,13 @@ void HardwareInit(void)
     W25QXX_Read(&ZeroDirction,FLASH_SECTOR_SIZE*2,sizeof(ZeroDirction));//获取找零方向
     W25QXX_Read(&ThisTransitionNumber,FLASH_SECTOR_SIZE*2+4,sizeof(ThisTransitionNumber));//获设备号
     TIM_ITConfig(TIM9,TIM_IT_CC1,ENABLE);//初始化时候关闭了报警信号的捕捉，在系统稳定之后，重新开启
-		TIM_Cmd(TIM9,ENABLE); //使能定时器9
+    TIM_Cmd(TIM9,ENABLE); //使能定时器9
     USART_Cmd(USART3, ENABLE);  //使能串口3
     BeepOFF;//软件初始化成功后停止鸣叫
-  	RTRbuf=(CAN_DATA_FRAME *)mymalloc(SRAMIN,sizeof(CAN_DATA_FRAME));//收到的应答帧识别标识内存区
-		LastPermissionFARM=(CAN_DATA_FRAME *)mymalloc(SRAMIN,sizeof(CAN_DATA_FRAME));//上一帧预动备份
-		memset(LastPermissionFARM,0,sizeof(CAN_DATA_FRAME));
-		printf("初始化成功");
+    RTRbuf=(CAN_DATA_FRAME *)mymalloc(SRAMIN,sizeof(CAN_DATA_FRAME));//收到的应答帧识别标识内存区
+    LastPermissionFARM=(CAN_DATA_FRAME *)mymalloc(SRAMIN,sizeof(CAN_DATA_FRAME));//上一帧预动备份
+    memset(LastPermissionFARM,0,sizeof(CAN_DATA_FRAME));
+//    printf("初始化成功");
 }
 
 /*******************************************************************************
@@ -124,24 +123,14 @@ void EventCreate(void)
     can2SendSem = OSSemCreate(0);
     stepMotorCtlSem = OSSemCreate(0);
     arrivePosSem = OSSemCreate(0);
-    stepFreeSem = OSSemCreate(0);//电机释放信号量
-    // CarApplyPassTransSem = OSSemCreate(0);//小车有任务信号量
-    CarAlreadyPassSem = OSSemCreate(0);//小车已经通过信号量
     CarAlreadyUpMbox = OSSemCreate(0);//小车已经上轨信号量
     CarAlreadyDownSem = OSSemCreate(0);
     ModBusFlagSem=OSSemCreate(0);
     AgreeChangeModeSem=OSSemCreate(0);
-    Can2Find0AckSem = OSSemCreate(0);//找零成功后给域发送结果信号量，然后域回复收到的信号量
-    TransFindzeroSem = OSSemCreate(0);//找零xinhaoliang
     can1Mbox = OSMboxCreate((void*)0);
     can2Mbox = OSMboxCreate((void*)0);
-    TransLocationQeue = OSQCreate(&TransLocationQeutb[0],10);//创建定位任务消息队列
-//    TranPreMissionMbox = OSMboxCreate((void*)0);
-    StepRunMbox = OSMboxCreate((void*)0);
-//    CarApplyPassTransMbox=OSMboxCreate((void*)0);
-//    CarApplyChangeTranMbox=OSMboxCreate((void*)0);
     ApplyChangeModeBox=OSMboxCreate((void*)0);//申请模式变更信号邮箱
-		WhereIsCarMbox=OSMboxCreate((void*)0);
+    WhereIsCarMbox=OSMboxCreate((void*)0);
 }
 
 /*******************************************************************************
@@ -158,14 +147,14 @@ void TaskCreate(void)
     OSTaskCreate(CAN2_Task,     (void *)0, &CAN2_TASK_STK[CAN2_TASK_SIZE-1],       CAN2_TASK_PRIO);
     OSTaskCreate(CAN2_Ack_Task, (void *)0, &CAN2ACK_TASK_STK[CAN2ACK_TASK_SIZE-1],  CAN2ACK_TASK_PRIO);
     OSTaskCreate(CAN2_Act_Task, (void *)0, &CAN2ACT_TASK_STK[CAN2ACT_TASK_SIZE-1],  CAN2ACT_TASK_PRIO);
-	  OSTaskCreate(CAN2_Send_Task,(void *)0,&CAN2Send_TASK_STK[CAN2Send_TASK_SIZE-1], CAN2Send_PRIO);
+    OSTaskCreate(CAN2_Send_Task,(void *)0,&CAN2Send_TASK_STK[CAN2Send_TASK_SIZE-1], CAN2Send_PRIO);
     OSTaskCreate(LED_Task,      (void *)0, &LED_TASK_STK[LED_TASK_SIZE-1],         LED_TASK_PRIO);
     OSTaskCreate(TransFindZero_Task,(void *)0,&FINDZERO_TASK_STK[FINDZERO_TASK_SIZE-1], FINDZERO_PRIO);
     OSTaskCreate(HEARBEAT_TASK,(void *)0,&HEARTBEAT_TASK_STK[HEARTBEAT_TASK_SIZE-1], HEARTBEAT_PRIO);//心跳任务
     OSTaskCreate(MODBUS_Task,(void *)0,&MODBUS_TASK_STK[MODBUS_TASK_SIZE-1],MODBUS_PRIO);//MODBUS处理任务
     OSTaskCreate(STATE_Task,(void *)0,  &STATE_TASK_STK[STATE_TASK_SIZE-1],STATE_PRIO);//状态处理线程
     //OSTaskCreate(ModeChange_Task,(void *)0,&MODE_TASK_STK[MODE_TASK_SIZE-1],MODE_PRIO);//模式变更处理线程
-	  OSTaskCreate(SCREEN_IMPLEMENT_Task,(void *)0,&TRANSPERMI_TASK_STK[TRANSPERMI_TASK_SIZE-1], TRANSPERMI_PRIO);
+    OSTaskCreate(SCREEN_IMPLEMENT_Task,(void *)0,&TRANSPERMI_TASK_STK[TRANSPERMI_TASK_SIZE-1], TRANSPERMI_PRIO);
 }
 /*******************************************************************************
 ** 函数名称: StateQuery_Index_judegment
@@ -261,12 +250,12 @@ void Master_Index_judegment(u8 canChan,CAN_DATA_FRAME * tempNode,CAN_DATA_FRAME 
 {
     u8 Main_index=tempNode->id.MasteridBit.MainIndex;
     u8 Sub_index=tempNode->id.MasteridBit.Subindex;
-	  u8 * CarWhere;
+    u8 * CarWhere;
     switch(Main_index)
     {
-	  case CAN_CONTROLLER_MAININDEX://kongzhiqi
-		{
-			switch(Sub_index)
+    case CAN_CONTROLLER_MAININDEX://kongzhiqi
+    {
+        switch(Sub_index)
         {
         case SetRestart://0x20,//域控制重新启动
         {
@@ -281,23 +270,21 @@ void Master_Index_judegment(u8 canChan,CAN_DATA_FRAME * tempNode,CAN_DATA_FRAME 
             Apply_Change_Mission(tempNode);
         }
         break;
-				
-				}
-		}
-		break;
+
+        }
+    }
+    break;
     case CAN_TRANSFER_MAININDEX://0x02
     {
         switch(Sub_index)
         {
-
-
-				case WhereISTheCar://
-				{
-					CarWhere=(u8 *)mymalloc(SRAMIN,1);
-					*CarWhere=tempNode->canMsg.dataBuf[0];
-					OSMboxPost(WhereIsCarMbox,CarWhere);
-				}
-				break;		
+        case WhereISTheCar://
+        {
+            CarWhere=(u8 *)mymalloc(SRAMIN,1);
+            *CarWhere=tempNode->canMsg.dataBuf[0];
+            OSMboxPost(WhereIsCarMbox,CarWhere);
+        }
+        break;
         case TransFindzero://转轨器校零//自动模式下，只有域控制器能给转轨器校零的命令11
         {
             ACKSendFram(CAN2_CHANNEL,tempNode);//立刻回应，主从
@@ -307,22 +294,15 @@ void Master_Index_judegment(u8 canChan,CAN_DATA_FRAME * tempNode,CAN_DATA_FRAME 
 
         case TranPerMission://预动任务fe
         {
-					  u8 cmpreust;
-						ACKSendFram(CAN2_CHANNEL,tempNode);//立刻回应，主从
-						//printf("收到预动。\r\n");
-					cmpreust=memcmp(LastPermissionFARM,tempNode,sizeof(CAN_DATA_FRAME));
-					if(cmpreust!=0)//预动帧没有重复接受LastPermissionFARM
-					{
-						FramRecTimeFlag[3]=0;
-						memcpy(LastPermissionFARM,tempNode,sizeof(CAN_DATA_FRAME));//将预动帧保留
-					  Apply_Change_Mission(tempNode);
-						//printf("预动\r\n");
-					}
-					else
-					{
-						//printf("预动重复，不做处理\r\n");
-					}
-						
+            u8 cmpreust;
+            ACKSendFram(CAN2_CHANNEL,tempNode);//立刻回应，主从
+            cmpreust=memcmp(LastPermissionFARM,tempNode,sizeof(CAN_DATA_FRAME));
+            if(cmpreust!=0)//预动帧没有重复接受LastPermissionFARM
+            {
+                FramRecTimeFlag[3]=0;
+                memcpy(LastPermissionFARM,tempNode,sizeof(CAN_DATA_FRAME));//将预动帧保留
+                Apply_Change_Mission(tempNode);
+            }
         }
         break;
 
@@ -342,8 +322,6 @@ void Master_Index_judegment(u8 canChan,CAN_DATA_FRAME * tempNode,CAN_DATA_FRAME 
 
         case TransStop://刹车，停止转动 fc 停止命令不耗时，就不用再进行恢复了
         {
-            //CAN_SEND_FRAME *TempSendFram;
-            //TempSendFram = (CAN_SEND_FRAME *)mymalloc(SRAMIN,sizeof(CAN_SEND_FRAME));//通知的结果帧
             ACKSendFram(CAN2_CHANNEL,tempNode);//立刻回应，主从
             if(TransStatus.TrackUse.Usebit.ExeCommands==T_Yes)//只有转轨器正在工作的时候，才会让他停止
             {
@@ -372,150 +350,126 @@ void Master_Index_judegment(u8 canChan,CAN_DATA_FRAME * tempNode,CAN_DATA_FRAME 
 **			 frameBuf:
 ** 返回说明: None
 ** 创建人员: 王凯
-** 创建日期: 2019-06-27
-改动说明：2019-07-05 王凯：此处的tempNode指针是原来的ACT任务链表中的指针，这里会出现问题
-当act线程遍历到一个结点的时候，将tenonode指针发送到机械或者其他执行类线程，这时候在ACT线程
-里面对tempNode进行释放，如果这个时候其他执行类线程还没有完成结点指明的任务，就会产生问题
-改动：memcpy
 ********************************************************************************/
 void Index_Judegment(u8 canChan,u32 id,u8 index,CAN_DATA_FRAME * tempNode,CAN_DATA_FRAME *frameBuf)
 {
-//    INT8U oserr;
-//    CAN_DATA_FRAME * CopyTempNode;	  
     enum _INDEX AgreeMentIndex;
     AgreeMentIndex=(enum _INDEX)index;
-	    OS_CPU_SR cpu_sr;
-
+    OS_CPU_SR cpu_sr;
     /*转轨器工作在自动模式下，这种模式下，小车能给转轨器调度，脱机和手动状态都不可调度*/
     if(TransStatus.DeviceMode==OperatingMode)
     {
         switch(AgreeMentIndex)
         {
-
         case GetTransStatus://获取转轨器状态数据01 属于即时命令 接受命令---发送数据
         {
             SendTransStatus(tempNode);//上传转轨器状态
         }
         break;
-
         case ReStart://实现软件复位ff
         {
             __set_FAULTMASK(1);//所有中断关闭
             NVIC_SystemReset();//软件复位
         }
         break;
-        case CarApplyPass://小车申请通过16
-        {
-            ACKSendFram(CAN2_CHANNEL,tempNode);//立刻回应，多主
-            Apply_Change_Mission(tempNode);
-            //在这个函数里面，申请一块内存保存了tempnode的数据，执行完之后才会继续向下执行，所以不会出现覆盖执行的问题
-        }
-        break;
-        case CarAlreadyPass://小车已经通过18
-        {
-            ACKSendFram(CAN2_CHANNEL,tempNode);//立刻回应，多主
-            OSSemPost(CarAlreadyPassSem);
-            //CarApplyPass_Task执行线程中会等待这个信号量，只有这个信号量到来，才会释放这个线程
-        }
-        break;
         case CarApplyChange://小车申请转轨10//真实任务
         {
-					u8 flag=0;
-				  CAR_CHANGEMISSION_DATA *ALLTrough=NULL;//临时结点，指向申请转轨任务头结点
-					ALLTrough=g_CarApplyChangedata;//指向任务链表头节点
-					printfcount++;
-					printf("\r\n<事务ID：%llu>（1/14）已经接收到 %d 号小车申请转轨帧，从%d号轨道到%d号轨道。\r\n",printfcount,
-					tempNode->id.idBit.sendDeviceId,
-					tempNode->canMsg.dataBuf[0],tempNode->canMsg.dataBuf[1]);
-					ACKSendFram(CAN2_CHANNEL,tempNode);//立刻回应，多主
-					printf("<事务ID：%llu>（2/14）已经对%d号小车申请转轨帧进行回应。\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
-					if(LastFramFlag != tempNode->id.idBit.sendDeviceId)//为了防止出现连续多次当送通过转轨期指令
-					{
-						OS_ENTER_CRITICAL();
-						FramRecTimeFlag[0]=0;//计时清零
-						LastFramFlag=tempNode->id.idBit.sendDeviceId;//将标志位变成车号
-						while(ALLTrough->NextMission!=NULL)
-						{
-							 if(ALLTrough->NextMission->MissionMark==MISSION_PROMISSION&&
-								  ALLTrough->NextMission->CarNum==tempNode->id.idBit.sendDeviceId)
-							{
-								ALLTrough->NextMission->FarmID=tempNode->id.canId;
-								ALLTrough->NextMission->InitialPoint=tempNode->canMsg.dataBuf[0];
-								ALLTrough->NextMission->TerminalPoint=tempNode->canMsg.dataBuf[1];
-								ALLTrough->NextMission->Missiontype=MISSION_AUTO;
-								ALLTrough->NextMission->MissionMark=MISSION_CARCHAGE;
-								flag=1;
-								break;
-							}
-							ALLTrough=ALLTrough->NextMission;
-						}
-					  OS_EXIT_CRITICAL();
+            u8 flag=0;
+            CAR_CHANGEMISSION_DATA *ALLTrough=NULL;//临时结点，指向申请转轨任务头结点
+            ALLTrough=g_CarApplyChangedata;//指向任务链表头节点
+            printfcount++;
+            //printf("\r\n<事务ID：%llu>（1/14）已经接收到 %d 号小车申请转轨帧，从%d号轨道到%d号轨道。\r\n",printfcount,
+//                   tempNode->id.idBit.sendDeviceId,
+//                   tempNode->canMsg.dataBuf[0],tempNode->canMsg.dataBuf[1]);
+            ACKSendFram(CAN2_CHANNEL,tempNode);//立刻回应，多主
+           // printf("<事务ID：%llu>（2/14）已经对%d号小车申请转轨帧进行回应。\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
+            if(LastFramFlag != tempNode->id.idBit.sendDeviceId)//为了防止出现连续多次当送通过转轨期指令
+            {
+                OS_ENTER_CRITICAL();
+                FramRecTimeFlag[0]=0;//计时清零
+                LastFramFlag=tempNode->id.idBit.sendDeviceId;//将标志位变成车号
+                while(ALLTrough->NextMission!=NULL)
+                {
+                    if(ALLTrough->NextMission->MissionMark==MISSION_PROMISSION&&
+                            ALLTrough->NextMission->CarNum==tempNode->id.idBit.sendDeviceId)
+                    {
+                        ALLTrough->NextMission->FarmID=tempNode->id.canId;
+                        ALLTrough->NextMission->InitialPoint=tempNode->canMsg.dataBuf[0];
+                        ALLTrough->NextMission->TerminalPoint=tempNode->canMsg.dataBuf[1];
+                        ALLTrough->NextMission->Missiontype=MISSION_AUTO;
+                        ALLTrough->NextMission->MissionMark=MISSION_CARCHAGE;
+                        flag=1;
+                        break;
+                    }
+                    ALLTrough=ALLTrough->NextMission;
+                }
+                OS_EXIT_CRITICAL();
 
-						/*判断任务链表之中的*/
-						if(flag==0)
-						{
-              Apply_Change_Mission(tempNode);
-						}
-						else
-					  {
-							flag=0;
-							break;
-						}
-						printf("<事务ID：%llu>%d号小车申请转轨任务已经建立。\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
-					}
-					else
-					{
-						printf("<事务ID：%llu>（ERR）收到%d号小车申请转轨帧，任务重复。\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
-					}
-						 
-          
-          break;					
-					//在这个函数里面，申请一块内存保存了tempnode的数据，执行完之后才会继续向下执行，所以不会出现覆盖执行的问题
+                /*判断任务链表之中的*/
+                if(flag==0)
+                {
+                    Apply_Change_Mission(tempNode);
+                }
+                else
+                {
+                    flag=0;
+                    break;
+                }
+               // printf("<事务ID：%llu>%d号小车申请转轨任务已经建立。\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
+            }
+            else
+            {
+               // printf("<事务ID：%llu>（ERR）收到%d号小车申请转轨帧，任务重复。\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
+            }
+
+
+            break;
+            //在这个函数里面，申请一块内存保存了tempnode的数据，执行完之后才会继续向下执行，所以不会出现覆盖执行的问题
         }
- 
+
 
         case CarAlreadyUpTrack://小车已经上轨道12
         {
 //					u8 *carnum;
-					printf("<事务ID：%llu>（6/14）已经接收到 %d 号小车已经上轨帧，此时已经上轨道\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
-					ACKSendFram(CAN2_CHANNEL,tempNode);//立刻回应，多主
-          printf("<事务ID：%llu>（7/14）已经对%d号小车已经上轨进行回应\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
-					if(alreadlyuptrack != tempNode->id.idBit.sendDeviceId)//只有当轨道被上锁的时候才会出现已经上轨这种帧，避免出现已经上轨累计这种情况
-					{
-						OS_ENTER_CRITICAL();
-						FramRecTimeFlag[1]=0;
-						alreadlyuptrack = tempNode->id.idBit.sendDeviceId;	
-						OS_EXIT_CRITICAL();
-					  printf("<事务ID：%llu>发送%d号小车已经上轨信号量\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
+           // printf("<事务ID：%llu>（6/14）已经接收到 %d 号小车已经上轨帧，此时已经上轨道\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
+            ACKSendFram(CAN2_CHANNEL,tempNode);//立刻回应，多主
+           // printf("<事务ID：%llu>（7/14）已经对%d号小车已经上轨进行回应\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
+            if(alreadlyuptrack != tempNode->id.idBit.sendDeviceId)//只有当轨道被上锁的时候才会出现已经上轨这种帧，避免出现已经上轨累计这种情况
+            {
+                OS_ENTER_CRITICAL();
+                FramRecTimeFlag[1]=0;
+                alreadlyuptrack = tempNode->id.idBit.sendDeviceId;
+                OS_EXIT_CRITICAL();
+               // printf("<事务ID：%llu>发送%d号小车已经上轨信号量\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
 //					  carnum=(u8 *)mymalloc(SRAMIN,1);
 //						*carnum=tempNode->id.idBit.sendDeviceId;
-            OSSemPost(CarAlreadyUpMbox);//开始转轨
-					}
-					else
-					{
-						printf("<事务ID：%llu>（ERR）收到%d号小车已经上轨帧，不发送信号量\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
-					}
+                OSSemPost(CarAlreadyUpMbox);//开始转轨
+            }
+            else
+            {
+               // printf("<事务ID：%llu>（ERR）收到%d号小车已经上轨帧，不发送信号量\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
+            }
         }
         break;
 
         case CarAlreadyDownTrack://小车已经下轨道14
         {
-					printf("<事务ID：%llu>（12/14）已经接收到 %d 号小车已经下轨帧，下轨道\r\n",printfcount,tempNode->id.idBit.sendDeviceId	);
-					ACKSendFram(CAN2_CHANNEL,tempNode);//立刻回应，多主
-			   	printf("<事务ID：%llu>（13/14）已经对%d号小车下轨帧进行回应\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
-					if(alreadlydowntrack != tempNode->id.idBit.sendDeviceId)//只有当轨道被上锁的时候才会出现已经轨这种帧，避免出现已经上轨累计这种情况
-					{
-						OS_ENTER_CRITICAL();
-						FramRecTimeFlag[2]=0;
-						alreadlydowntrack = tempNode->id.idBit.sendDeviceId;
-						OS_EXIT_CRITICAL();						
-						printf("<事务ID：%llu>发送%d号小车已经下轨信号量\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
-            OSSemPost(CarAlreadyDownSem);//解锁
-					}
-					else
-					{
-						printf("<事务ID：%llu>（ERR）收到%d号小车已经下轨帧，但不发送信号量\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
-					}
+           // printf("<事务ID：%llu>（12/14）已经接收到 %d 号小车已经下轨帧，下轨道\r\n",printfcount,tempNode->id.idBit.sendDeviceId	);
+            ACKSendFram(CAN2_CHANNEL,tempNode);//立刻回应，多主
+           // printf("<事务ID：%llu>（13/14）已经对%d号小车下轨帧进行回应\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
+            if(alreadlydowntrack != tempNode->id.idBit.sendDeviceId)//只有当轨道被上锁的时候才会出现已经轨这种帧，避免出现已经上轨累计这种情况
+            {
+                OS_ENTER_CRITICAL();
+                FramRecTimeFlag[2]=0;
+                alreadlydowntrack = tempNode->id.idBit.sendDeviceId;
+                OS_EXIT_CRITICAL();
+               // printf("<事务ID：%llu>发送%d号小车已经下轨信号量\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
+                OSSemPost(CarAlreadyDownSem);//解锁
+            }
+            else
+            {
+               // printf("<事务ID：%llu>（ERR）收到%d号小车已经下轨帧，但不发送信号量\r\n",printfcount,tempNode->id.idBit.sendDeviceId);
+            }
         }
         break;
 
@@ -536,75 +490,6 @@ void Index_Judegment(u8 canChan,u32 id,u8 index,CAN_DATA_FRAME * tempNode,CAN_DA
     {
         switch(AgreeMentIndex)
         {
-//        case TransLocation://转轨器定位10
-//        {
-//            /*2019-07-05王凯：修改：使用消息队列时候，申请复制内存，否则内存会被释放，任何时候都是相同的值*/
-//            CopyTempNode = (CAN_DATA_FRAME *)mymalloc(SRAMIN,sizeof(CAN_DATA_FRAME));
-//            memcpy(CopyTempNode,tempNode,sizeof(CAN_DATA_FRAME));
-//            OSQPost(TransLocationQeue,CopyTempNode);
-//            /*void TransLocation_TASK(void *pdata)中接受这个信号量*/
-//        }
-//        break;
-//        case TransFindzero://转轨器校零11
-//        {
-//            CopyTempNode = (CAN_DATA_FRAME *)mymalloc(SRAMIN,sizeof(CAN_DATA_FRAME));
-//            memcpy(CopyTempNode,tempNode,sizeof(CAN_DATA_FRAME));
-//            OSQPost(TransLocationQeue,CopyTempNode);
-//        }
-//        break;
-
-
-//        case ResetTransStatus://重置转轨器状态 0为调试状态 02
-//        {
-//            TransStatus.DeviceMode=tempNode->canMsg.dataBuf[0];
-//            TransStatus.WarningCode=tempNode->canMsg.dataBuf[1];
-//            TransStatus.ErrorCode=tempNode->canMsg.dataBuf[2];
-//        }
-//        break;
-
-
-
-//        case TransMove://转轨器移动 12
-//        {
-//            /*在点动时候，如果采用另外开线程的方法，很容易丢步，这里直接调用执行函数*/
-//            /*原因是起步速度太慢  导致丢步*/
-//            if (tempNode->canMsg.dataBuf[0]+(tempNode->canMsg.dataBuf[1]<<8)==1)
-//            {
-//                StepMotor_Run(20,0,1);//这地方的速度不可太小，否则没有到位信号
-//                OSSemPend(arrivePosSem,0,&oserr);
-//            }
-//            else if ((INT16S)(tempNode->canMsg.dataBuf[0]+(tempNode->canMsg.dataBuf[1]<<8))==-1)
-//            {
-//                StepMotor_Run(20,1,1);//这地方的速度不可太小，否则没有到位信号
-//                OSSemPend(arrivePosSem,0,&oserr);
-//            }
-//            else
-////引起电机运行线程的执行，在这个线程中会发送一个电机释放信号量，如果不对这个信号量进行消减会影响其他线程的执行
-//            {
-//                OSMboxPost(StepRunMbox,tempNode);
-//                OSSemPend(stepFreeSem,0,&oserr);//等待步进电机执行线程返回的信号量
-//            }
-//        }
-//        break;
-
-//        case CurrentPreset://设置当前位为预置位13
-//        {
-//            TrackCount[(u8)(Reg[ModBus_Calibration]>>8)][(u8)(Reg[ModBus_Calibration])]=TransStatus.EncoderCount;//轨道数的全局变量设置为当前对准的编码数
-//            TransStatus.DockedNumber=ModBus_Calibration;//正好对准的轨道号改变
-//        }
-//        break;
-//        case LoadTransParameters://装载转轨器参数14
-//        {
-//            ReadFlash();//CRC校验，校验区域是编码数备份的主副区域
-//            TrackCount_Load(); //从W25Q读取标定的编码并初始化函数
-//        }
-//        break;
-
-//        case SaveTransParameters://保存转轨器参数15
-//        {
-//            TrackCount_Save();
-//        }
-//        break;
         case GetTransStatus://获取转轨器状态数据01 属于即时命令 接受命令---发送数据
         {
             SendTransStatus(tempNode);//上传转轨器状态

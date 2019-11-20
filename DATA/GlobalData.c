@@ -43,11 +43,8 @@ INT8U W25QXXReceiveBuff[130];//接收缓存
 volatile  u8 FindZeroGlob=0;//找零是否触发零点标志
 T_CAN_Communicat_Mode CANCommunicatMode;//CAN通讯标志
 
-OS_EVENT * TransLocationQeue;//轨道定位信号邮箱
-OS_EVENT * CarAlreadyPassSem;//小车已经通过信号量
 OS_EVENT * CarAlreadyUpMbox;//小车已经上轨信号量
 OS_EVENT * CarAlreadyDownSem;//小车已经下轨道信号量
-OS_EVENT * TransFindzeroSem;//轨道找零
 OS_EVENT * AgreeChangeModeSem;//域同意改变模式
 OS_EVENT * ApplyChangeModeBox;//申请模式变更信号邮箱
 OS_EVENT * WhereIsCarMbox;//小车现在在哪信号邮箱
@@ -66,14 +63,10 @@ OS_EVENT *can2InfoAckSem;  //CAN2信息应答信号量
 OS_EVENT *can2AckSem;
 OS_EVENT *can1SendSem;
 OS_EVENT *can2SendSem;
-
-
-OS_EVENT *Can2Find0AckSem;//找零成功后给域发送结果信号量，然后域回复收到的信号量
 /************************************消息邮箱******************************************/
 OS_EVENT *can1Mbox;
 OS_EVENT *can2Mbox;
 OS_EVENT *canCtlResMbox;  //CAN指挥结果邮箱
-OS_EVENT *StepRunMbox;//步进电机步数
 T_Trans_Status DefoultTransStatus={
     .WarningCode=0,
     .ErrorCode=0,

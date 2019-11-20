@@ -11,7 +11,6 @@
 #include "myconfig.h"
 OS_EVENT *stepMotorCtlSem;//单步信号量
 OS_EVENT *arrivePosSem;//到达目标位置信号量
-OS_EVENT *stepFreeSem;//电机释放信号量
 INT8U stepMotorCtlTime;//每一步之间间隔5us为一个单位
 u8 ZeroDirction=0xff;//零点开关方向,初始未知，从flash中读取或者modbus告知
 u8 PCtrl=0;//逆
@@ -113,7 +112,7 @@ void TIM9_Cap_Init(u32 arr,u16 psc)
     NVIC_InitStructure.NVIC_IRQChannelSubPriority =0;		//子优先级3
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;			//IRQ通道使能
     NVIC_Init(&NVIC_InitStructure);	//根据指定的参数初始化VIC寄存器
-    TIM_Cmd(TIM9,ENABLE); //使能定时器9
+    TIM_Cmd(TIM9,DISABLE); //使能定时器9
 }
 /****************************************************************
 功能：定时器3捕获初始化    零点开关信号
@@ -286,14 +285,19 @@ void StepMotor_NCtrl(u32 speed)
 bool StepMotor_Run(u32 speed,u8 direction,u32 count)
 {
     u8 Stepcount=0;
-    u8 SpeedUpMax=100;
+    u8 SpeedUpMax=60;
     //u8 SpeedDownMin=speed;
     int8_t MAXFlag=-1;//权值
     u32 LevelCount;
+	  u32 initialspeed=speed;//备份初始速度
     TransStatus.DockedNumber=0xffff;//位置未知
     if(speed>SpeedUpMax)
     {
         LevelCount=(count/(speed-SpeedUpMax))/2;//每LevelCount个编码，speed升一级
+			if(LevelCount>=20)
+			{
+				LevelCount=20;
+			}
     }
     IsMotorRun=T_Yes;
     if(direction==PCtrl)//逆时针
@@ -303,7 +307,7 @@ bool StepMotor_Run(u32 speed,u8 direction,u32 count)
             if(TranferSpeed==TranferStop)/*如果这里有刹车信号，直接跳出循环*/
             {
                 TranferSpeed=1;
-//                EnableStopButton=T_Yes;
+               EnableStopButton=T_Yes;
                 break;
             }
 
@@ -311,15 +315,13 @@ bool StepMotor_Run(u32 speed,u8 direction,u32 count)
             {
                 StepMotor_PCtrl(speed);//100是速度
             }
-            /*峰值加减速*/
-//            if(speed>SpeedUpMax&&count%LevelCount==0)//说明编码数已经走了一个等级,短路条件
-//            {
-//                speed=speed+MAXFlag;//加速一个,此时Falg为-1
-//                if(speed==SpeedUpMax+1)///当到达最大速度的时候
-//                {
-//                    MAXFlag=1;
-//                }
-//            }
+           /*峰值加减速*/
+            if(speed>SpeedUpMax&&count%LevelCount==0)//说明编码数已经走了一个等级,短路条件
+            {
+                speed=speed+MAXFlag;//加速一个,此时Falg为-1          
+            }
+             if(count<=LevelCount*(initialspeed-SpeedUpMax))
+								MAXFlag=1;     
 
             if(ZeroDirction==clockwise)//如果是顺指针找零，这个时候是逆时针转动，所以编码数加一
             {
@@ -332,7 +334,7 @@ bool StepMotor_Run(u32 speed,u8 direction,u32 count)
                 // if(TransStatus.EncoderCount<=0) break;
             }
         }
-				IsMotorRun=T_No;
+        IsMotorRun=T_No;
         return true;
     }
     else if(direction==NCtrl)//顺指针
@@ -350,16 +352,16 @@ bool StepMotor_Run(u32 speed,u8 direction,u32 count)
             {
                 StepMotor_NCtrl(speed);//100是速度
             }
-//            /*峰值加减速*/
-//            if(speed>SpeedUpMax&&count%LevelCount==0)//说明编码数已经走了一个等级,短路条件
-//            {
-//                speed=speed+MAXFlag;//加速一个,此时Falg为-1
-//                if(speed==SpeedUpMax+1)///当到达最大速度的时候
-//                {
-//                    MAXFlag=1;
-//                }
-//            }
+            /*峰值加减速*/
+            if(speed>SpeedUpMax&&count%LevelCount==0)//说明编码数已经走了一个等级,短路条件
+            {
+                speed=speed+MAXFlag;//加速一个,此时Falg为-1          
+            }
+             if(count<=LevelCount*(initialspeed-SpeedUpMax))
+								MAXFlag=1;   
 
+
+						 
             if(ZeroDirction==clockwise)//如果是顺指针找零，这个时候是shun时针转动，所以编码数-1
             {
                 TransStatus.EncoderCount--;
@@ -372,13 +374,8 @@ bool StepMotor_Run(u32 speed,u8 direction,u32 count)
                 //if(TransStatus.EncoderCount>=MAX_Count) break;
 
             }
-            if(TranferSpeed==TranferStop)//停止标志位0 立刻停止
-            {
-                TranferSpeed=1;//
-                break;//跳出执行，停止
-            }
         }
-								IsMotorRun=T_No;
+        IsMotorRun=T_No;
         return true;
     }
     else return false;
@@ -431,9 +428,10 @@ void TIM1_UP_TIM10_IRQHandler(void)
         if(arrivePosSem->OSEventCnt==0)//不允许多个到位信号积压
         {
             OSSemPost(arrivePosSem);//当捕捉到到位信号，发送到位信号
-            LED_BlinkTime.LED3_Times++;//暂时让灯3亮
         }
     }
+		            LED_BlinkTime.LED3_Times++;//暂时让灯3亮
+
     TIM_ClearITPendingBit(TIM10,TIM_IT_CC1|TIM_IT_Update);
 
     OSIntExit();

@@ -40,25 +40,14 @@ void CarMission_Software_Init(void)
 u16 Choose_TransLocate_Change(u8 MovingTrack,u8 FixedTrack)
 {
     OS_CPU_SR cpu_sr;
-    CAN_DATA_FRAME * tempNodel;
 	  u8 dirction;
 	  INT32U MotorCount;
 //    u8 count;//计数
     INT8U oserr;
     INT32S InsertingValue;
-    OS_ENTER_CRITICAL();
-    tempNodel = (CAN_DATA_FRAME *)mymalloc(SRAMIN,sizeof(CAN_DATA_FRAME));//统一使用申请内存
-    if(tempNodel!=NULL)
-    {
-        OS_EXIT_CRITICAL();
-        memset(tempNodel,0,sizeof(CAN_DATA_FRAME));//将申请的内存清零
-    }
 
     if(TrackCount[0][FixedTrack]==0xffff)//如果是ffff的话 说明这个定轨到不了这个动轨
     {
-        OS_ENTER_CRITICAL();
-        myfree(SRAMIN,tempNodel);
-        OS_EXIT_CRITICAL();
         return 0xffff;//返回错误信息
     }
     /**************************当所需要定位的轨道距离零点最近，校零****************************************/
@@ -81,9 +70,6 @@ u16 Choose_TransLocate_Change(u8 MovingTrack,u8 FixedTrack)
     if(InsertingValue==(INT32S)0)//如果当前的编码数和需要移动的轨道号编码数相等（差值为0）
     {
         TransStatus.DockedNumber=MovingTrack<<8|FixedTrack;
-        OS_ENTER_CRITICAL();
-        myfree(SRAMIN,tempNodel);
-        OS_EXIT_CRITICAL();
         return TransStatus.DockedNumber;//返回当前那一条活轨对准哪一条定轨
     }
     else if(InsertingValue!=(INT32S)0)//当前的轨道编码和需要移动的编码不相等
@@ -102,7 +88,7 @@ u16 Choose_TransLocate_Change(u8 MovingTrack,u8 FixedTrack)
             dirction=dirction;//步数为正应该电机逆时针0旋转，步数为负应该电机顺指针旋转1
         }
         /*执行电机运动函数*/
-        StepMotor_Run(100,dirction,MotorCount);
+        StepMotor_Run(150,dirction,MotorCount);
         OSSemPend(arrivePosSem,2000,&oserr);//等待到位信号，在定时器10中断服务函数中发送10
         if(oserr==OS_ERR_TIMEOUT)//超时//和预期的时间不符合，说明可能丢步，重试
         {
@@ -169,6 +155,7 @@ void Apply_Change_Mission(CAN_DATA_FRAME * tempNode)
         if(tempNode->id.MasteridBit.Subindex==TranPerMission)//如果是预动任务
         {
             NewMissionNode->NextMission=NULL;
+					  NewMissionNode->CarNum=tempNode->canMsg.dataBuf[1];
             NewMissionNode->InitialPoint=tempNode->canMsg.dataBuf[0];//获得小车的起始位置
             NewMissionNode->Missiontype=MISSION_AUTO;//预动标志置1
             NewMissionNode->MissionMark=MISSION_PROMISSION;//是预动任务
